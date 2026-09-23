@@ -2,36 +2,33 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.datasets import load_wine
+np.random.seed(42)
+data = {
+    "Feature_A": np.random.rand(100),
+    "Feature_B": np.random.rand(100),
+    "Feature_C": np.random.rand(100),
+    "Feature_D": np.random.rand(100),
+}
+data["Feature_C"] = data["Feature_A"] * 0.85 + np.random.rand(100) * 0.15
 
-wine = load_wine()
-df = pd.DataFrame(
-    wine.data,
-    columns=wine.feature_names
-)
+df = pd.DataFrame(data)
 
-df["target"] = wine.target
-features = wine.feature_names
-corr = df[features].corr()
-corr_for_max = corr.mask(
-    np.eye(corr.shape[0], dtype=bool)
-)
 
-max_corr = corr_for_max.stack().idxmax()
-max_value = corr_for_max.stack().max()
+corr_matrix = df.corr()
 
-print("Strongest positive correlation:")
-print(max_corr)
-print("Correlation value:", max_value)
-plt.figure(figsize=(12, 9))
 
+plt.figure(figsize=(8, 6))
+# Using a diverging palette ('coolwarm') where dark red represents high positive correlation
 sns.heatmap(
-    corr,
-    annot=True,
-    cmap="coolwarm",
-    fmt=".2f"
+    corr_matrix, annot=True, cmap="coolwarm", vmin=-1, vmax=1, fmt=".3f"
 )
-
-plt.title("Correlation Heatmap of Wine Dataset")
-plt.tight_layout()
+plt.title("Feature Correlation Heatmap", fontsize=14)
 plt.show()
+np.fill_diagonal(corr_matrix.values, np.nan)
+unstacked_corr = corr_matrix.unstack()
+strongest_value = unstacked_corr.max()
+strongest_pair = unstacked_corr.idxmax()
+
+print(
+    f"Strongest Positive Correlation: {strongest_value:.3f} between {strongest_pair}"
+)
